@@ -88,7 +88,7 @@ async function renameAgent(pcName, currentName) {
             const res = await fetch(`/api/agent/${pcName}/rename`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ newName: newName.trim() })
+                body: JSON.stringify({ new_name: newName.trim() })
             });
             const data = await res.json();
             if (data.status === 'ok') {
