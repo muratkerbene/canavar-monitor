@@ -28,7 +28,12 @@
         <div class="detail-header">
             <div>
                 <a href="/" class="back-link">← Geri Dön</a>
-                <h1 style="margin-top:8px">🖥️ {{ pc_name }}</h1>
+                <h1 style="margin-top:8px; display:flex; align-items:center; gap:12px;">
+                    🖥️ <span id="detail-name">{{ display_name }}</span>
+                    <span style="font-size:18px; cursor:pointer;"
+                        onclick="renameAgent('{{ pc_name }}', document.getElementById('detail-name').innerText)">✏️</span>
+                </h1>
+                <p style="margin-top:4px; color:var(--text-secondary); font-size:14px;">Orijinal Adı: {{ pc_name }}</p>
             </div>
             <span class="badge badge-offline" id="detail-status"><span class="dot"></span>Yükleniyor...</span>
         </div>

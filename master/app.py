@@ -39,13 +39,18 @@ DEFAULT_CONFIG = {
     "alert_disk_threshold": 90,
     "update_url_version": "",
     "update_url_zip": "",
+    "custom_names": {}  # { pc_name: "custom_name" }
 }
 
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            cfg = json.load(f)
+            # Ensure new keys exist in old configs
+            if "custom_names" not in cfg:
+                cfg["custom_names"] = {}
+            return cfg
     save_config(DEFAULT_CONFIG)
     return DEFAULT_CONFIG.copy()
 
@@ -112,6 +117,7 @@ def agents_summary():
     for name, data in agents.items():
         agent = data.copy()
         agent["status"] = get_agent_status(data)
+        agent["display_name"] = config.get("custom_names", {}).get(name, name)
         agent["last_seen_str"] = (
             data["last_seen"].strftime("%H:%M:%S")
             if data.get("last_seen")
@@ -143,7 +149,9 @@ def dashboard():
 
 @app.route("/pc/<pc_name>")
 def pc_detail(pc_name):
-    return render_template("pc_detail.html", pc_name=pc_name)
+    # Pass both pc_name and display_name to the template
+    display_name = config.get("custom_names", {}).get(pc_name, pc_name)
+    return render_template("pc_detail.html", pc_name=pc_name, display_name=display_name)
 
 
 @app.route("/settings")
@@ -152,7 +160,7 @@ def settings():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  API - Agent Communication
+#  API - Agent Communication & Management
 # ═══════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/heartbeat", methods=["POST"])
@@ -196,12 +204,27 @@ def get_agent(pc_name):
         return jsonify({"error": "Agent bulunamadı"}), 404
     data = agents[pc_name].copy()
     data["status"] = get_agent_status(agents[pc_name])
+    data["display_name"] = config.get("custom_names", {}).get(pc_name, pc_name)
     data["last_seen_str"] = (
         data["last_seen"].strftime("%H:%M:%S") if data.get("last_seen") else ""
     )
     data.pop("last_seen", None)
     return jsonify(data)
 
+@app.route("/api/agent/<pc_name>/rename", methods=["POST"])
+def rename_agent(pc_name):
+    """Rename an agent (display name only)."""
+    data = request.get_json()
+    if not data or "new_name" not in data:
+        return jsonify({"error": "new_name gerekli"}), 400
+    
+    new_name = data["new_name"].strip()
+    if not new_name:
+        new_name = pc_name  # Reset logic
+        
+    config.setdefault("custom_names", {})[pc_name] = new_name
+    save_config(config)
+    return jsonify({"status": "ok", "display_name": new_name})
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  API - Command System

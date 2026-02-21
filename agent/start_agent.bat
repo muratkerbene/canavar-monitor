@@ -31,12 +31,12 @@ set SCRIPT_PATH=%~dp0agent.py
 :: Delete old task if exists
 schtasks /delete /tn "%TASK_NAME%" /f >nul 2>&1
 
-:: Create new task: runs at logon
-schtasks /create /tn "%TASK_NAME%" /tr "pythonw \"%SCRIPT_PATH%\"" /sc onlogon /rl highest /f >nul 2>&1
+:: Create new startup entry via Registry (Doesn't require Admin)
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "%TASK_NAME%" /t REG_SZ /d "pythonw ^\"%SCRIPT_PATH%^\"" /f >nul 2>&1
 if %errorlevel% equ 0 (
     echo ✅ Başlangıca eklendi! PC açıldığında otomatik çalışacak.
 ) else (
-    echo ⚠️ Başlangıca eklenemedi. Yönetici olarak çalıştırmayı deneyin.
+    echo ⚠️ Başlangıca eklenemedi.
 )
 echo.
 

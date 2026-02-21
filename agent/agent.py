@@ -202,19 +202,12 @@ def discovery_loop():
 
         time.sleep(5)
 
-<<<<<<< HEAD
-
-# ─── Heartbeat ────────────────────────────────────────────────────────────────
-def heartbeat_loop():
-    """Send heartbeat to master periodically."""
-=======
 # ─── Heartbeat ────────────────────────────────────────────────────────────────
 _update_triggered = False  # aynı anda birden fazla güncelleme tetiklenmesi
 
 def heartbeat_loop():
     """Send heartbeat to master periodically."""
     global _update_triggered
->>>>>>> a70169e03910d043805df570fd1774ebc30f0263
     while True:
         server_url = config.get("server_url")
         if server_url:
@@ -229,16 +222,10 @@ def heartbeat_loop():
                     data = r.json()
                     server_ver = data.get("server_version", "")
                     local_ver = get_version()
-<<<<<<< HEAD
-                    if server_ver and server_ver != local_ver and config.get("auto_update"):
-                        print(f"[*] Yeni versiyon mevcut: {local_ver} -> {server_ver}")
-                        # Auto update could be triggered here
-=======
                     if server_ver and server_ver != local_ver and config.get("auto_update") and not _update_triggered:
                         _update_triggered = True
                         print(f"[*] Yeni versiyon mevcut: {local_ver} -> {server_ver}")
                         check_github_update()
->>>>>>> a70169e03910d043805df570fd1774ebc30f0263
             except requests.exceptions.ConnectionError:
                 print("[!] Master'a baglanamadi")
             except Exception as e:
@@ -419,8 +406,26 @@ def check_update():
 #  MAIN
 # ═══════════════════════════════════════════════════════════════════════════
 
+def add_to_startup():
+    """Kayıt defterine (Registry) ekleyerek başlangıçta otomatik çalışmayı sağlar."""
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
+        script_path = os.path.abspath(sys.argv[0])
+        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
+        if not os.path.exists(python_exe):
+            python_exe = sys.executable
+        value = f'"{python_exe}" "{script_path}"'
+        winreg.SetValueEx(key, "CANAVAR_Agent", 0, winreg.REG_SZ, value)
+        winreg.CloseKey(key)
+        print("✅ Python içinden Windows başlangıcına eklendi.")
+    except Exception as e:
+        print(f"[!] Baslangica eklemede hata: {e}")
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    add_to_startup()
 
     pc_name = config.get("pc_name", platform.node())
     print("=" * 60)
