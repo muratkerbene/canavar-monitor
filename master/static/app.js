@@ -38,19 +38,24 @@ function buildPCCard(agent) {
         processHTML = `<div class="process-section"><h4>İzlenen Programlar</h4><div class="process-list">${tags}</div></div>`;
     }
 
+    const displayName = agent.display_name || agent.pc_name;
+
     return `
-    <div class="pc-card" onclick="window.location='/pc/${agent.pc_name}'">
-        <div class="pc-card-header">
+    <div class="pc-card">
+        <div class="pc-card-header" style="cursor: pointer" onclick="window.location='/pc/${agent.pc_name}'">
             <div class="pc-card-name">
                 <span class="pc-icon">🖥️</span>
                 <div>
-                    <h3>${agent.pc_name}</h3>
+                    <h3 style="display:flex; align-items:center; gap:8px;">
+                        ${displayName} 
+                        <span style="font-size:12px; cursor:pointer;" onclick="event.stopPropagation(); renameAgent('${agent.pc_name}', '${displayName}')">✏️</span>
+                    </h3>
                     <span class="pc-ip">${agent.ip || '—'}</span>
                 </div>
             </div>
             <span class="badge ${statusClass}"><span class="dot"></span>${statusText}</span>
         </div>
-        <div class="metrics">
+        <div class="metrics" style="cursor: pointer" onclick="window.location='/pc/${agent.pc_name}'">
             <div class="metric">
                 <span class="metric-label">CPU</span>
                 <div class="metric-bar"><div class="metric-fill ${getMetricClass(agent.cpu, 'blue')}" style="width:${agent.cpu}%"></div></div>
@@ -73,6 +78,29 @@ function buildPCCard(agent) {
             <span class="version">v${agent.agent_version || '?'}</span>
         </div>
     </div>`;
+}
+
+// Rename Agent
+async function renameAgent(pcName, currentName) {
+    const newName = prompt(`Agent '${currentName}' için yeni bir isim girin:`, currentName);
+    if (newName !== null && newName.trim() !== '') {
+        try {
+            const res = await fetch(`/api/agent/${pcName}/rename`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newName: newName.trim() })
+            });
+            const data = await res.json();
+            if (data.status === 'ok') {
+                showToast('İsim güncellendi!', 'success');
+                refreshDashboard();
+            } else {
+                showToast(`Hata: ${data.error}`, 'error');
+            }
+        } catch (err) {
+            showToast('İsim güncellenemedi', 'error');
+        }
+    }
 }
 
 // Refresh dashboard
