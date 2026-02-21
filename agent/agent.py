@@ -406,8 +406,26 @@ def check_update():
 #  MAIN
 # ═══════════════════════════════════════════════════════════════════════════
 
+def add_to_startup():
+    """Kayıt defterine (Registry) ekleyerek başlangıçta otomatik çalışmayı sağlar."""
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
+        script_path = os.path.abspath(sys.argv[0])
+        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
+        if not os.path.exists(python_exe):
+            python_exe = sys.executable
+        value = f'"{python_exe}" "{script_path}"'
+        winreg.SetValueEx(key, "CANAVAR_Agent", 0, winreg.REG_SZ, value)
+        winreg.CloseKey(key)
+        print("✅ Python içinden Windows başlangıcına eklendi.")
+    except Exception as e:
+        print(f"[!] Baslangica eklemede hata: {e}")
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    add_to_startup()
 
     pc_name = config.get("pc_name", platform.node())
     print("=" * 60)
