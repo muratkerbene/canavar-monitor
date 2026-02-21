@@ -328,11 +328,13 @@ def check_github_update():
         return
 
     try:
-        # 1) Uzaktaki version.txt'i oku
-        ver_url = f"{github_raw_url}/version.txt"
+        # 1) Uzaktaki version.txt'i oku (Bypass cache)
+        ver_url = f"{github_raw_url}/version.txt?t={int(time.time())}"
         r = requests.get(ver_url, timeout=10)
         if r.status_code != 200:
             print(f"[!] GitHub version.txt alinamadi (HTTP {r.status_code})")
+            global _update_triggered
+            _update_triggered = False
             return
 
         remote_ver = r.text.strip()
@@ -340,16 +342,20 @@ def check_github_update():
 
         if remote_ver == local_ver:
             print(f"[✓] Guncelleme yok. Versiyon: {local_ver}")
+            global _update_triggered
+            _update_triggered = False
             return
 
         print(f"[*] Yeni versiyon bulundu: {local_ver} -> {remote_ver}")
         print("[*] agent.py indiriliyor...")
 
-        # 2) Yeni agent.py'yi indir
-        agent_url = f"{github_raw_url}/agent/agent.py"
+        # 2) Yeni agent.py'yi indir (Bypass cache)
+        agent_url = f"{github_raw_url}/agent/agent.py?t={int(time.time())}"
         r2 = requests.get(agent_url, timeout=30)
         if r2.status_code != 200:
             print(f"[!] agent.py indirilemedi (HTTP {r2.status_code})")
+            global _update_triggered
+            _update_triggered = False
             return
 
         # 3) Mevcut dosyayı yedekle, yenisini yaz
@@ -374,6 +380,8 @@ def check_github_update():
 
     except Exception as e:
         print(f"[!] GitHub guncelleme hatasi: {e}")
+        global _update_triggered
+        _update_triggered = False
 
 
 def update_check_loop():
