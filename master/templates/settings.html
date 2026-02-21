@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CANAVAR Monitor - Ayarlar</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <span class="logo">🐾</span>
+            <span>CANAVAR Monitor</span>
+        </div>
+        <div class="navbar-links">
+            <a href="/">📊 Dashboard</a>
+            <a href="/settings" class="active">⚙️ Ayarlar</a>
+        </div>
+        <div class="navbar-status">
+            <span class="dot"></span>
+            <span>Sunucu Aktif</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>⚙️ Ayarlar</h1>
+            <p>Sistem yapılandırması ve tercihleri</p>
+        </div>
+
+        <div class="settings-grid">
+            <!-- Watched Programs -->
+            <div class="settings-card">
+                <h3>👁️ İzlenecek Programlar</h3>
+                <div class="form-group">
+                    <label>Program adlarını girin (Enter ile ekleyin)</label>
+                    <div class="tag-input-wrapper" id="programs-wrapper">
+                        <input type="text" class="tag-input" placeholder="Örn: chrome.exe">
+                    </div>
+                    <span class="help-text">Program adının sonuna .exe eklemeyi unutmayın</span>
+                </div>
+            </div>
+
+            <!-- Alert Thresholds -->
+            <div class="settings-card">
+                <h3>🔔 Alarm Eşikleri</h3>
+                <div class="form-group">
+                    <label>CPU Uyarı Eşiği (%)</label>
+                    <input type="number" id="alert-cpu" min="1" max="100" value="90">
+                </div>
+                <div class="form-group">
+                    <label>RAM Uyarı Eşiği (%)</label>
+                    <input type="number" id="alert-ram" min="1" max="100" value="90">
+                </div>
+                <div class="form-group">
+                    <label>Disk Uyarı Eşiği (%)</label>
+                    <input type="number" id="alert-disk" min="1" max="100" value="90">
+                </div>
+            </div>
+
+            <!-- Update System -->
+            <div class="settings-card full-width">
+                <h3>🔄 Güncelleme Sistemi</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label>Versiyon Kontrol URL'si</label>
+                        <input type="text" id="update-version-url"
+                            placeholder="https://raw.githubusercontent.com/.../version.txt">
+                        <span class="help-text">Mevcut en son versiyon numarasının bulunduğu dosya</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Güncelleme ZIP URL'si</label>
+                        <input type="text" id="update-zip-url"
+                            placeholder="https://github.com/.../releases/download/.../agent.zip">
+                        <span class="help-text">Agent güncelleme paketinin indirileceği adres</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="loadSettings()">↩️ Sıfırla</button>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Kaydet</button>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        loadSettings();
+        initTagInput('programs-wrapper');
+    </script>
+</body>
+
+</html>

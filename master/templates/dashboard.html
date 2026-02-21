@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CANAVAR Monitor - Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <span class="logo">🐾</span>
+            <span>CANAVAR Monitor</span>
+        </div>
+        <div class="navbar-links">
+            <a href="/" class="active">📊 Dashboard</a>
+            <a href="/settings">⚙️ Ayarlar</a>
+        </div>
+        <div class="navbar-status">
+            <span class="dot"></span>
+            <span>Sunucu Aktif</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>PC İzleme Paneli</h1>
+            <p>Tüm bilgisayarlarınızı tek yerden izleyin ve yönetin</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon blue">🖥️</div>
+                <div class="stat-info">
+                    <h3 id="stat-total">0</h3>
+                    <p>Toplam PC</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">✅</div>
+                <div class="stat-info">
+                    <h3 id="stat-online">0</h3>
+                    <p>Çevrimiçi</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">🔴</div>
+                <div class="stat-info">
+                    <h3 id="stat-offline">0</h3>
+                    <p>Çevrimdışı</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow">⚠️</div>
+                <div class="stat-info">
+                    <h3 id="stat-warning">0</h3>
+                    <p>Uyarı</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PC Cards -->
+        <div class="pc-grid" id="pc-grid">
+            <div class="empty-state">
+                <div class="icon">📡</div>
+                <h3>Henüz PC bağlanmadı</h3>
+                <p>Agent'ları diğer PC'lerde çalıştırın, otomatik olarak burada görünecekler.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        refreshDashboard();
+        setInterval(refreshDashboard, REFRESH_INTERVAL);
+    </script>
+</body>
+</html>

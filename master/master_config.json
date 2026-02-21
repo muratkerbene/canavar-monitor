@@ -1,0 +1,11 @@
+{
+  "watched_programs": [
+    "chrome.exe",
+    "discord.exe"
+  ],
+  "alert_cpu_threshold": 90,
+  "alert_ram_threshold": 90,
+  "alert_disk_threshold": 90,
+  "update_url_version": "",
+  "update_url_zip": ""
+}
