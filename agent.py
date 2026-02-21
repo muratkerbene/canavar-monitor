@@ -53,10 +53,19 @@ config = load_config()
 
 
 def get_version():
+    """Version bilgisini oku. Git merge conflict marker’larını temizle."""
     if os.path.exists(VERSION_FILE):
         with open(VERSION_FILE, "r") as f:
-            return f.read().strip()
+            content = f.read()
+        # Merge conflict marker’larını temizle, ilk geçerli satırı al
+        import re
+        for line in content.splitlines():
+            line = line.strip()
+            if line and not line.startswith(('<', '>', '=', '#')):
+                if re.match(r'^\d+\.\d+', line):  # x.y ile başlamalı
+                    return line
     return config.get("version", "1.0.0")
+
 
 
 # ─── System Info Collection ──────────────────────────────────────────────────
