@@ -406,21 +406,124 @@ def check_update():
 #  MAIN
 # ═══════════════════════════════════════════════════════════════════════════
 
-def add_to_startup():
-    """Kayıt defterine (Registry) ekleyerek başlangıçta otomatik çalışmayı sağlar."""
+def _get_launch_command():
+    """Agent'ı başlatmak için kullanılacak Python ve script yollarını döndürür."""
+    script_path = os.path.abspath(sys.argv[0])
+    # pythonw.exe kullan → pencere açmaz (arka planda çalışır)
+    python_exe = sys.executable.replace("python.exe", "pythonw.exe")
+    if not os.path.exists(python_exe):
+        python_exe = sys.executable
+    return python_exe, script_path
+
+
+def _add_to_startup_registry():
+    """
+    HKCU Registry'ye ekler — admin gerektirmez.
+    Returns: True başarılı, False başarısız
+    """
     try:
         import winreg
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
-        script_path = os.path.abspath(sys.argv[0])
-        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
-        if not os.path.exists(python_exe):
-            python_exe = sys.executable
-        value = f'"{python_exe}" "{script_path}"'
-        winreg.SetValueEx(key, "CANAVAR_Agent", 0, winreg.REG_SZ, value)
+        python_exe, script_path = _get_launch_command()
+        run_value = f'"{python_exe}" "{script_path}"'
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
+        winreg.SetValueEx(key, "CanavarAgent", 0, winreg.REG_SZ, run_value)
         winreg.CloseKey(key)
-        print("✅ Python içinden Windows başlangıcına eklendi.")
+
+        # Doğrula
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ)
+        val, _ = winreg.QueryValueEx(key, "CanavarAgent")
+        winreg.CloseKey(key)
+
+        if val == run_value:
+            print("[OK] Registry'ye eklendi (HKCU\\...\\Run)")
+            return True
+        return False
     except Exception as e:
-        print(f"[!] Baslangica eklemede hata: {e}")
+        print(f"[!] Registry eklemede hata: {e}")
+        return False
+
+
+def _add_to_startup_folder():
+    """
+    Startup klasörüne .bat dosyası ekler — yedek yöntem.
+    Returns: True başarılı, False başarısız
+    """
+    try:
+        startup_dir = os.path.join(
+            os.environ["APPDATA"],
+            "Microsoft", "Windows", "Start Menu", "Programs", "Startup"
+        )
+        os.makedirs(startup_dir, exist_ok=True)
+        bat_path = os.path.join(startup_dir, "CanavarAgent.bat")
+
+        python_exe, script_path = _get_launch_command()
+
+        with open(bat_path, "w", encoding="utf-8") as f:
+            f.write(f'@echo off\nstart "" "{python_exe}" "{script_path}"\n')
+
+        # Doğrula
+        if os.path.exists(bat_path) and os.path.getsize(bat_path) > 0:
+            print(f"[OK] Startup klasörüne eklendi: {bat_path}")
+            return True
+        return False
+    except Exception as e:
+        print(f"[!] Startup klasörü eklemede hata: {e}")
+        return False
+
+
+def _add_to_startup_taskscheduler():
+    """
+    Windows Görev Zamanlayıcısı'na ekler — son çare.
+    Returns: True başarılı, False başarısız
+    """
+    try:
+        python_exe, script_path = _get_launch_command()
+        cmd = (
+            f'schtasks /create /tn "CanavarAgent" /tr '
+            f'"{python_exe} {script_path}" '
+            f'/sc ONLOGON /rl HIGHEST /f'
+        )
+        ret = os.system(cmd)
+        if ret == 0:
+            print("[OK] Task Scheduler'a eklendi (ONLOGON)")
+            return True
+        print(f"[!] Task Scheduler dönüş kodu: {ret}")
+        return False
+    except Exception as e:
+        print(f"[!] Task Scheduler eklemede hata: {e}")
+        return False
+
+
+def add_to_startup():
+    """
+    Agent'ı Windows başlangıcına zorla ekler.
+    Sırasıyla 3 yöntem dener: Registry → Startup klasörü → Task Scheduler.
+    En az biri başarılı olursa yeterli sayılır.
+    """
+    print("[*] Başlangıca ekleniyor...")
+    success = False
+
+    # Yöntem 1: Registry (HKCU) — en güvenilir, admin gerektirmez
+    if _add_to_startup_registry():
+        success = True
+
+    # Yöntem 2: Startup klasörü — yedek
+    if not success:
+        if _add_to_startup_folder():
+            success = True
+
+    # Yöntem 3: Task Scheduler — son çare
+    if not success:
+        if _add_to_startup_taskscheduler():
+            success = True
+
+    if success:
+        print("[✓] Başlangıca başarıyla eklendi.")
+    else:
+        print("[✗] Başlangıca eklenemedi! Tüm yöntemler başarısız.")
+
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
