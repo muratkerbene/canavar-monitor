@@ -1,0 +1,11 @@
+{
+    "pc_name": "MaharogaOS-Test",
+    "server_url": "http://localhost:5000",
+    "watched_programs": [
+        "chrome.exe",
+        "discord.exe"
+    ],
+    "version": "1.0.0",
+    "auto_update": true,
+    "github_raw_url": "https://raw.githubusercontent.com/muratkerbene/canavar-monitor/main"
+}
